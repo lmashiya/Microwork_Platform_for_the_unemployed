@@ -64,9 +64,14 @@ namespace Microwork_Platform_for_the_unemployed.Models
         public string Higher { get; set; }
 
         [Display(Name = "Password")]
+        [MinLength(6,ErrorMessage = "Mininum 6 characters required")]
+        [DataType(DataType.Password)]
         [Required(AllowEmptyStrings = false, ErrorMessage = "Password is required")]
         public string Password { get; set; }
-
+        [Display(Name = "Confirm Password")]
+        [DataType(DataType.Password)]
+        [Compare("Password",ErrorMessage = "Confirm password and password do not match")]
+        public string ConfirmPassword { get; set; }
         public System.DateTime RegistrationDate { get; set; }
         public string DesiredProvince { get; set; }
         public string DesiredCity { get; set; }

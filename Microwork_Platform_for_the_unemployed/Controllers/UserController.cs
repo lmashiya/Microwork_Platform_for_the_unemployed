@@ -1,11 +1,13 @@
 ﻿using Microwork_Platform_for_the_unemployed.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 using System.Web.Services.Description;
 
 namespace Microwork_Platform_for_the_unemployed.Controllers
@@ -19,6 +21,9 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
           return View();
       }
         //Registration Post action
+
+        #region Registration
+
         public ActionResult Registration([Bind(Exclude = "RegistrationDate,IsEmailVerified,ActivationCode,Resume")] User user)
         {
             var status = false;
@@ -30,13 +35,13 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                 var isExists = IsEmailExist(user.EmailAddress);
                 if (isExists)
                 {
-                    ModelState.AddModelError("EmailExist","Email already exist");
+                    ModelState.AddModelError("EmailExist", "Email already exist");
                 }
                 #endregion
 
                 #region Generate Activation Code
 
-                user.ActivationCode = new Guid();
+                user.ActivationCode = Guid.NewGuid();
 
                 #endregion
 
@@ -50,7 +55,7 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                 #endregion
 
                 user.IsEmailVerified = false;
-                user.Resume = new byte[]{ 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
+                user.Resume = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
 
                 #region Save To Database
 
@@ -61,8 +66,8 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                 }
 
                 #region Send Email To New User
-                
-                SendVerificationLinkEmail(user.EmailAddress,user.ActivationCode.ToString());
+
+                SendVerificationLinkEmail(user.EmailAddress, user.ActivationCode.ToString());
                 message = "Registration successfully created. Account sent to your email address : " +
                           user.EmailAddress;
                 status = true;
@@ -85,60 +90,142 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
             ViewBag.Status = status;
             return View(user);
         }
-        //Verify Email
+ 
 
-        //Verify Email Link
+        #endregion 
+        #region VerifyAccount
 
-        //Verify
-
-        //Login
-
-        //Login Post
-
-        //Logout
-        [NonAction]
-        public bool IsEmailExist(string email)
+        [HttpGet]
+        public ActionResult VerifyAccount(string id)
         {
+            bool status = false;
             using (var entity = new JobAtYourFingerTipsEntities())
             {
-                var result = entity.Users.FirstOrDefault(x => x.EmailAddress == email);
-                return result != null;
+                entity.Configuration.ValidateOnSaveEnabled = false;
+                var codeChecker = entity.Users.FirstOrDefault(x => x.ActivationCode == new Guid(id));
+                if (codeChecker != null)
+                {
+                    codeChecker.IsEmailVerified = true;
+                    entity.SaveChanges();
+                    status = true;
+                }
+                else
+                {
+                    ViewBag.Message = "Invalid Request";
+                }
             }
+
+            ViewBag.Status = status;
+            return View();
         }
 
-        [NonAction]
-        public void SendVerificationLinkEmail(string email, string activationCode)
+        #endregion
+
+        #region Login
+        [HttpGet]
+        public ActionResult Login()
         {
-            var verifyUrl = "/Users/VerifyAccount/" + activationCode;
-            if (Request.Url != null)
+            return View();
+        }
+
+        #endregion
+
+        #region Login Post
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(UserLogin login, string ReturnUrl)
+        {
+            string message = "";
+
+            ViewBag.Message = message;
+            using (var entity = new JobAtYourFingerTipsEntities())
             {
-                var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
-
-                var fromEmail = new MailAddress("lehlohonolomashiyane@gmail.com","JobsAtYourFingerTips");
-                var toEmail = new MailAddress(email);
-                const string fromEmailPassword = "lubanzi123"; //replace with password
-                const string subject = "Your account has been successfully created";
-                var body = "<br/></br> Happy to tell you that you JobAtYouFingerTips account has been sucessfully created." +
-                           "Please click on the link below to activate your account<br/></br><a href '"+link+"'>"+link+"</a>";
-
-                var smtpClient = new SmtpClient
+                var chechResult = entity.Users.FirstOrDefault(x => x.EmailAddress == login.EmailAddress);
+                if (chechResult != null)
                 {
-                    Host = "smtp.gmail.com",
-                    Port = 587,
-                    EnableSsl = true,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(fromEmail.Address,fromEmailPassword)
-                };
+                    if (string.Compare(Crypto.Hash(login.Password), chechResult.Password) == 0)
+                    {
+                        var timeout = login.RememberMe ? 43800 : 20;
+                        var ticket = new FormsAuthenticationTicket(login.EmailAddress, login.RememberMe, timeout);
+                        var encrypted = FormsAuthentication.Encrypt(ticket);
+                        var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encrypted);
+                        cookie.Expires = DateTime.Now.AddMinutes(timeout);
+                        cookie.HttpOnly = true;
+                        Response.Cookies.Add(cookie);
 
-                using (var message = new MailMessage(fromEmail,toEmail)
+                        if (Url.IsLocalUrl(ReturnUrl))
+                        {
+                            return Redirect(ReturnUrl);
+                        }
+                        return RedirectToAction("Index","Home");
+                    }
+                    message = "Invalid login details";
+                }
+                else
                 {
-                    Subject = subject,
-                    Body = body,
-                    IsBodyHtml = true
-                }) 
-                    smtpClient.Send(message);
+                    message = "Invalid login details";
+                }
+
+                ViewBag.Message = message;
+                return View();
             }
         }
+
+        #endregion
+
+            //Logout
+            [Authorize]
+            [HttpPost]
+            public ActionResult Logout()
+            {
+                FormsAuthentication.SignOut();
+                return RedirectToAction("Login", "User");
+            }
+
+            [NonAction]
+            public bool IsEmailExist(string email)
+            {
+                using (var entity = new JobAtYourFingerTipsEntities())
+                {
+                    var result = entity.Users.FirstOrDefault(x => x.EmailAddress == email);
+                    return result != null;
+                }
+            }
+
+            [NonAction]
+            public void SendVerificationLinkEmail(string email, string activationCode)
+            {
+                var verifyUrl = "/User/VerifyAccount/" + activationCode;
+                if (Request.Url != null)
+                {
+                    var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
+
+                    var fromEmail = new MailAddress("lehlohonolomashiyane@gmail.com","JobsAtYourFingerTips");
+                    var toEmail = new MailAddress(email);
+                    const string fromEmailPassword = "lubanzi123"; //replace with password
+                    const string subject = "Your account has been successfully created";
+                    var body = "<br/><br/> Happy to tell you that you JobAtYouFingerTips account has been sucessfully created." +
+                               "Please click on the link below to activate your account<a href='"+link+"'>"+link+"</a>";
+
+                    var smtpClient = new SmtpClient
+                    {
+                        Host = "smtp.gmail.com",
+                        Port = 587,
+                        EnableSsl = true,
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        UseDefaultCredentials = false,
+                        Credentials = new NetworkCredential(fromEmail.Address,fromEmailPassword)
+                    };
+
+                    using (var message = new MailMessage(fromEmail,toEmail)
+                    {
+                        Subject = subject,
+                        Body = body,
+                        IsBodyHtml = true
+                    }) 
+                        smtpClient.Send(message);
+                }
+            }
     }
 }
