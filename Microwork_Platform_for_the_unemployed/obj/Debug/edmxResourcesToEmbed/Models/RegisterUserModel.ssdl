@@ -24,6 +24,7 @@
     <Property Name="ActivationCode" Type="uniqueidentifier" Nullable="false" />
     <Property Name="Password" Type="nvarchar(max)" Nullable="false" />
     <Property Name="DateOfBirth" Type="date" Nullable="false" />
+    <Property Name="ResetPasswordCode" Type="varchar" MaxLength="100" />
   </EntityType>
   <EntityContainer Name="JobAtYourFingerTipsModelStoreContainer">
     <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />

@@ -114,8 +114,25 @@
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>RegisterUserModel.Designer.cs</LastGenOutput>
     </EntityDeploy>
+    <Content Include="Models\RegisterEmployer.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>RegisterEmployer.edmx</DependentUpon>
+      <LastGenOutput>RegisterEmployer.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\RegisterEmployer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>RegisterEmployer.edmx</DependentUpon>
+      <LastGenOutput>RegisterEmployer.cs</LastGenOutput>
+    </Content>
     <Content Include="Models\RegisterUserModel.edmx.diagram">
       <DependentUpon>RegisterUserModel.edmx</DependentUpon>
+    </Content>
+    <EntityDeploy Include="Models\RegisterEmployer.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>RegisterEmployer.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\RegisterEmployer.edmx.diagram">
+      <DependentUpon>RegisterEmployer.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Models\RegisterUserModel.Context.tt">
@@ -149,7 +166,26 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\Employer.cs">
+      <DependentUpon>RegisterEmployer.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Extended\Employer.cs" />
     <Compile Include="Models\Extended\User.cs" />
+    <Compile Include="Models\RegisterEmployer.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RegisterEmployer.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RegisterEmployer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RegisterEmployer.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\RegisterEmployer.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RegisterEmployer.edmx</DependentUpon>
+    </Compile>
     <Compile Include="Models\RegisterUserModel.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -165,6 +201,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RegisterUserModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Models\ResetPasswordModel.cs" />
     <Compile Include="Models\User.cs">
       <DependentUpon>RegisterUserModel.tt</DependentUpon>
     </Compile>
@@ -181,6 +218,10 @@
     <Content Include="Views\User\VerifyAccount.cshtml" />
     <Content Include="Views\User\Login.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\EmployerUser\EmployerRegistration.cshtml" />
+    <Content Include="Views\EmployerUser\EmployerVerifyAccount.cshtml" />
+    <Content Include="Views\User\ForgotPassword.cshtml" />
+    <Content Include="Views\User\ResetPassword.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -189,7 +230,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Views\EmployerUser\" />
     <Folder Include="Views\RegisterUser\" />
   </ItemGroup>
   <ItemGroup>

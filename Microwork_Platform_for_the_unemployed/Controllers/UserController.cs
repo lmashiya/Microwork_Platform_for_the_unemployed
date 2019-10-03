@@ -23,7 +23,7 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
         //Registration Post action
 
         #region Registration
-
+        [HttpPost]
         public ActionResult Registration([Bind(Exclude = "RegistrationDate,IsEmailVerified,ActivationCode,Resume")] User user)
         {
             var status = false;
@@ -36,6 +36,7 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                 if (isExists)
                 {
                     ModelState.AddModelError("EmailExist", "Email already exist");
+                    return View(user);
                 }
                 #endregion
 
@@ -134,17 +135,16 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(UserLogin login, string ReturnUrl)
+        public ActionResult Login(UserLogin login, string ReturnUrl, Employer employerLogin)
         {
             string message = "";
 
-            ViewBag.Message = message;
-            using (var entity = new JobAtYourFingerTipsEntities())
+            using (var entityEmployer = new JobAtYourFingerTipsEntities1())
             {
-                var chechResult = entity.Users.FirstOrDefault(x => x.EmailAddress == login.EmailAddress);
-                if (chechResult != null)
+                var checkResultEmployer = entityEmployer.Employers.FirstOrDefault(x => x.Email == employerLogin.Email);
+                if (checkResultEmployer != null)
                 {
-                    if (string.Compare(Crypto.Hash(login.Password), chechResult.Password) == 0)
+                    if (string.Compare(Crypto.Hash(login.Password), checkResultEmployer.Password) == 0)
                     {
                         var timeout = login.RememberMe ? 43800 : 20;
                         var ticket = new FormsAuthenticationTicket(login.EmailAddress, login.RememberMe, timeout);
@@ -158,18 +158,50 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                         {
                             return Redirect(ReturnUrl);
                         }
-                        return RedirectToAction("Index","Home");
+
+                        return RedirectToAction("Index", "Home");
                     }
-                    message = "Invalid login details";
-                }
-                else
-                {
-                    message = "Invalid login details";
                 }
 
-                ViewBag.Message = message;
-                return View();
+                using (var entity = new JobAtYourFingerTipsEntities())
+                {
+                    var chechResult = entity.Users.FirstOrDefault(x => x.EmailAddress == login.EmailAddress);
+                    if (chechResult != null)
+                    {
+                        if (string.Compare(Crypto.Hash(login.Password), chechResult.Password) == 0)
+                        {
+                            var timeout = login.RememberMe ? 43800 : 20;
+                            var ticket =
+                                new FormsAuthenticationTicket(login.EmailAddress, login.RememberMe, timeout);
+                            var encrypted = FormsAuthentication.Encrypt(ticket);
+                            var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encrypted);
+                            cookie.Expires = DateTime.Now.AddMinutes(timeout);
+                            cookie.HttpOnly = true;
+                            Response.Cookies.Add(cookie);
+
+                            if (Url.IsLocalUrl(ReturnUrl))
+                            {
+                                return Redirect(ReturnUrl);
+                            }
+
+                            return RedirectToAction("Index", "Home");
+                        }
+                        message = "The email address or password that you've entered doesn't match any account. Sign up for an account";
+
+                    }
+                    else
+                    {
+                        message = "The email address or password that you've entered doesn't match any account. Sign up for an account";
+                    }
+
+
+                }
+
+
             }
+
+            ViewBag.Message = message;
+            return View();
         }
 
         #endregion
@@ -194,9 +226,9 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
             }
 
             [NonAction]
-            public void SendVerificationLinkEmail(string email, string activationCode)
+            public void SendVerificationLinkEmail(string email, string activationCode,string emailFor = "VerifyAccount")
             {
-                var verifyUrl = "/User/VerifyAccount/" + activationCode;
+                var verifyUrl = "/User/"+ emailFor +"/" + activationCode;
                 if (Request.Url != null)
                 {
                     var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
@@ -204,9 +236,21 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                     var fromEmail = new MailAddress("lehlohonolomashiyane@gmail.com","JobsAtYourFingerTips");
                     var toEmail = new MailAddress(email);
                     const string fromEmailPassword = "lubanzi123"; //replace with password
-                    const string subject = "Your account has been successfully created";
-                    var body = "<br/><br/> Happy to tell you that you JobAtYouFingerTips account has been sucessfully created." +
-                               "Please click on the link below to activate your account<a href='"+link+"'>"+link+"</a>";
+                    var subject = "";
+                    var body = "";
+                    if (emailFor == "VerifyAccount")
+                    {
+                        subject = "Your account has been successfully created";
+                        body = "<br/><br/> Happy to tell you that you JobAtYouFingerTips account has been sucessfully created." +
+                                   "Please click on the link below to activate your account<br/><br/><a href='" + link + "'>" + link + "</a>";
+                    }
+                    else if (emailFor == "ResetPassword")
+                    {
+                        subject = "Reset Password for account";
+                        body = "<br/><br/> Reset password request has been received." +
+                               "Please click on the link below to activate your account<br/><br/><a href=" + link + ">Reset Password Link</a>";
+                    }
+                    
 
                     var smtpClient = new SmtpClient
                     {
@@ -227,5 +271,84 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                         smtpClient.Send(message);
                 }
             }
+            [HttpGet]
+            public ActionResult ForgotPassword()
+            {
+                return View();
+            }
+
+            [HttpPost]
+        public ActionResult ForgotPassword(string email)
+        {
+            string message = "";
+            bool status = false;
+            using (var entity = new JobAtYourFingerTipsEntities())
+            {
+                var account = entity.Users.FirstOrDefault(x => x.EmailAddress == email);
+                if (account != null)
+                {
+                    //Send email for reset password
+                    string resetCode = Guid.NewGuid().ToString();
+                    SendVerificationLinkEmail(account.EmailAddress,resetCode,"ResetPassword");
+                    account.ResetPasswordCode = resetCode;
+                    entity.Configuration.ValidateOnSaveEnabled = false;
+                    entity.SaveChanges();
+                }
+                else
+                {
+                    message = "Account not found";
+                }
+            }
+
+            ViewBag.Message = message;
+            return View();
+        }
+
+        public ActionResult ResetPassword(string id)
+        {
+            using (var entity = new JobAtYourFingerTipsEntities())
+            {
+                var user = entity.Users.FirstOrDefault(x => x.ResetPasswordCode == id);
+                if (user != null)
+                {
+                    ResetPasswordModel model = new ResetPasswordModel();
+                    model.ResetCode = id;
+                    return View(model);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ResetPassword(ResetPasswordModel model)
+        {
+            var message = "";
+            if (ModelState.IsValid)
+            {
+                using (var entity = new JobAtYourFingerTipsEntities())
+                {
+                    var user = entity.Users.FirstOrDefault(x => x.ResetPasswordCode == model.ResetCode);
+                    if (user != null)
+                    {
+                        user.Password = Crypto.Hash(model.NewPassword);
+                        user.ResetPasswordCode = "";
+                        entity.Configuration.ValidateOnSaveEnabled = false;
+                        entity.SaveChanges();
+                        message = "New password updated successfully";
+                    }
+                }
+            }
+            else
+            {
+                message = "Invalid";
+            }
+
+            ViewBag.Message = message;
+            return View(model);
+        }
     }
 }

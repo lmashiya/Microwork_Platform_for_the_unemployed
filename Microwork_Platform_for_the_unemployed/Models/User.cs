@@ -34,5 +34,6 @@ namespace Microwork_Platform_for_the_unemployed.Models
         public System.Guid ActivationCode { get; set; }
         public string Password { get; set; }
         public System.DateTime DateOfBirth { get; set; }
+        public string ResetPasswordCode { get; set; }
     }
 }
