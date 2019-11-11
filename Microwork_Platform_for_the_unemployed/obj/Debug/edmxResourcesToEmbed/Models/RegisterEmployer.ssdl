@@ -12,6 +12,7 @@
     <Property Name="JobPosts" Type="int" Nullable="false" />
     <Property Name="IsEmailVerified" Type="bit" Nullable="false" />
     <Property Name="ActivationCode" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ResetPasswordCode" Type="varchar" MaxLength="100" />
   </EntityType>
   <EntityContainer Name="JobAtYourFingerTipsModel1StoreContainer">
     <EntitySet Name="Employer" EntityType="Self.Employer" Schema="dbo" store:Type="Tables" />

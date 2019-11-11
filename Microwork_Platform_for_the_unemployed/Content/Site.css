@@ -16,3 +16,8 @@ textarea {
     max-width: 280px;
 }
 
+.content-wrapper {
+    margin: 0 auto;
+    max-width: 100%;
+}
+

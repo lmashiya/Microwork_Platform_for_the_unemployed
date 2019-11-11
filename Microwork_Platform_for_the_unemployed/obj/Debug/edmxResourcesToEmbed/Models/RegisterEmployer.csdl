@@ -12,6 +12,7 @@
     <Property Name="JobPosts" Type="Int32" Nullable="false" />
     <Property Name="IsEmailVerified" Type="Boolean" Nullable="false" />
     <Property Name="ActivationCode" Type="Guid" Nullable="false" />
+    <Property Name="ResetPasswordCode" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
   </EntityType>
   <EntityContainer Name="JobAtYourFingerTipsEntities1" annotation:LazyLoadingEnabled="true">
     <EntitySet Name="Employers" EntityType="Self.Employer" />

@@ -2,20 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Speech.Synthesis;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using System.Web.Services.Description;
+using System.Web.UI.WebControls;
 
 namespace Microwork_Platform_for_the_unemployed.Controllers
 {
     public class UserController : Controller
     {
-      //Registration action
-      [HttpGet]
+       
+        //Registration action
+        [HttpGet]
       public ActionResult Registration()
       {
           return View();
@@ -126,6 +131,7 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
         [HttpGet]
         public ActionResult Login()
         {
+            //Speaker.Speak("Welcome to the Login Page");
             return View();
         }
 
@@ -137,7 +143,8 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserLogin login, string ReturnUrl, Employer employerLogin)
         {
-            string message = "";
+        
+             string message = "";
 
             using (var entityEmployer = new JobAtYourFingerTipsEntities1())
             {
@@ -200,6 +207,7 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
 
             }
 
+            
             ViewBag.Message = message;
             return View();
         }
@@ -282,6 +290,23 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
         {
             string message = "";
             bool status = false;
+            using (var entity = new JobAtYourFingerTipsEntities1())
+            {
+                var account = entity.Employers.FirstOrDefault(x => x.Email == email);
+                if (account != null)
+                {
+                    //Send email for reset password
+                    string resetCode = Guid.NewGuid().ToString();
+                    SendVerificationLinkEmail(account.Email, resetCode, "ResetPassword");
+                    account.ResetPasswordCode = resetCode ;
+                    entity.Configuration.ValidateOnSaveEnabled = false;
+                    entity.SaveChanges();
+                }
+                else
+                {
+                    message = "Account not found";
+                }
+            }
             using (var entity = new JobAtYourFingerTipsEntities())
             {
                 var account = entity.Users.FirstOrDefault(x => x.EmailAddress == email);
@@ -320,6 +345,14 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                     return HttpNotFound();
                 }
             }
+        }
+
+        [NonAction]
+        public void SaySomething(string text)
+        {
+            var speech = new SpeechSynthesizer();
+            speech.Speak(text);
+
         }
 
         [HttpPost]

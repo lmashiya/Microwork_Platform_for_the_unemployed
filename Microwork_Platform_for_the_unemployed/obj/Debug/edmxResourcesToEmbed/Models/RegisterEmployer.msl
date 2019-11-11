@@ -4,6 +4,7 @@
     <EntitySetMapping Name="Employers">
       <EntityTypeMapping TypeName="JobAtYourFingerTipsModel1.Employer">
         <MappingFragment StoreEntitySet="Employer">
+          <ScalarProperty Name="ResetPasswordCode" ColumnName="ResetPasswordCode" />
           <ScalarProperty Name="Id" ColumnName="Id" />
           <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
           <ScalarProperty Name="Password" ColumnName="Password" />
