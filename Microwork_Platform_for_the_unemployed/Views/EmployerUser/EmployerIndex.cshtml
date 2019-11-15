@@ -1,0 +1,20 @@
+﻿
+@{
+    ViewBag.Title = "EmployerIndex";
+}
+
+<h2>Employer</h2>
+
+<h2>Welcome @HttpContext.Current.User.Identity.Name</h2>
+
+<div>
+    @Html.ActionLink("View Profile/Edit Profile", "EmployerViewResult", "EmployerUser")
+</div>
+
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("Logout", "User", FormMethod.Post, new { id = "logoutForm" }))
+    {
+        <a href="javascript:document.getElementById('logoutForm').submit()">Logout</a>
+    }
+}

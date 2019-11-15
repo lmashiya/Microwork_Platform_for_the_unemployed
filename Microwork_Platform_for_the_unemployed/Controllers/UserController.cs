@@ -18,7 +18,45 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
 {
     public class UserController : Controller
     {
-       
+        //[HttpGet]
+        //public ActionResult ViewResult()
+        //{
+
+        //    return View();
+        //}
+
+        
+        public ActionResult ViewResult()
+        {
+            var user = new User();
+            
+            using (var entity = new JobAtYourFingerTipsEntities())
+            {
+                var account = entity.Users.FirstOrDefault(x => x.EmailAddress == HttpContext.User.Identity.Name);
+                if (account != null)
+                {
+                    user.FirstName = account.FirstName;
+                    user.DesiredCity = account.DesiredCity;
+                    user.EmailAddress = account.EmailAddress;
+                    user.MobileNumber = account.MobileNumber;
+                    user.Province = account.Province;
+                    user.Age = account.Age;
+                    user.Province = account.Province;
+                    user.City = account.City;
+                    user.DateOfBirth = account.DateOfBirth;
+                    user.Experience = account.Experience;
+                    user.Higher = account.Higher;
+                    user.Gender = account.Gender;
+                    user.LastName = account.LastName;
+                    user.DesiredProvince = account.DesiredProvince;
+                    user.KeySkills = account.KeySkills;
+                    user.DesiredProvince = account.DesiredProvince;
+                }
+            }
+
+            return View(user);
+        }
+
         //Registration action
         [HttpGet]
       public ActionResult Registration()
@@ -137,17 +175,18 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
 
         #endregion
 
-        #region Login Post
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(UserLogin login, string ReturnUrl, Employer employerLogin)
+        public ActionResult Login(UserLogin login, string returnUrl, Employer employerLogin)
         {
         
              string message = "";
 
             using (var entityEmployer = new JobAtYourFingerTipsEntities1())
             {
+                if(employerLogin.Email == null)
+                    employerLogin.Email = login.EmailAddress;
                 var checkResultEmployer = entityEmployer.Employers.FirstOrDefault(x => x.Email == employerLogin.Email);
                 if (checkResultEmployer != null)
                 {
@@ -161,12 +200,13 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                         cookie.HttpOnly = true;
                         Response.Cookies.Add(cookie);
 
-                        if (Url.IsLocalUrl(ReturnUrl))
+                        if (Url.IsLocalUrl(returnUrl))
                         {
-                            return Redirect(ReturnUrl);
+                            return Redirect(returnUrl);
                         }
 
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("EmployerIndex", "EmployerUser");
+
                     }
                 }
 
@@ -186,11 +226,10 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                             cookie.HttpOnly = true;
                             Response.Cookies.Add(cookie);
 
-                            if (Url.IsLocalUrl(ReturnUrl))
+                            if (Url.IsLocalUrl(returnUrl))
                             {
-                                return Redirect(ReturnUrl);
+                                return Redirect(returnUrl);
                             }
-
                             return RedirectToAction("Index", "Home");
                         }
                         message = "The email address or password that you've entered doesn't match any account. Sign up for an account";
@@ -204,7 +243,6 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
 
                 }
 
-
             }
 
             
@@ -212,7 +250,6 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
             return View();
         }
 
-        #endregion
 
             //Logout
             [Authorize]
@@ -334,6 +371,17 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
             using (var entity = new JobAtYourFingerTipsEntities())
             {
                 var user = entity.Users.FirstOrDefault(x => x.ResetPasswordCode == id);
+                if (user != null)
+                {
+                    ResetPasswordModel model = new ResetPasswordModel();
+                    model.ResetCode = id;
+                    return View(model);
+                }
+               
+            }
+            using (var entity = new JobAtYourFingerTipsEntities1())
+            {
+                var user = entity.Employers.FirstOrDefault(x => x.ResetPasswordCode == id);
                 if (user != null)
                 {
                     ResetPasswordModel model = new ResetPasswordModel();

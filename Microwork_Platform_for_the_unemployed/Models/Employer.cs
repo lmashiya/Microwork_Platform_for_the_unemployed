@@ -23,5 +23,10 @@ namespace Microwork_Platform_for_the_unemployed.Models
         public bool IsEmailVerified { get; set; }
         public System.Guid ActivationCode { get; set; }
         public string ResetPasswordCode { get; set; }
+        public string MobileNumber { get; set; }
+        public string CompanyNumber { get; set; }
+        public string EmployerName { get; set; }
+
+
     }
 }

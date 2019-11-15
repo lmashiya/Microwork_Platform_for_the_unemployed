@@ -11,8 +11,32 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
 {
     public class EmployerUserController : Controller
     {
-       // GET: EmployerUser
-       [HttpGet]
+        public ActionResult EmployerViewResult()
+        {
+            var employerUser = new Employer();
+
+            using (var entity = new JobAtYourFingerTipsEntities1())
+            {
+                var account = entity.Employers.FirstOrDefault(x => x.Email == HttpContext.User.Identity.Name);
+                if (account != null)
+                {
+                    employerUser.CompanyName = account.CompanyName;
+                    employerUser.Email = account.Email;
+                    employerUser.EmployerName = account.EmployerName;
+                    employerUser.MobileNumber = account.MobileNumber;
+                    employerUser.CompanyNumber = account.CompanyNumber;
+                }
+            }
+
+            return View(employerUser);
+        }
+        [Authorize]
+        public ActionResult EmployerIndex()
+        {
+            return View();
+        }
+        // GET: EmployerUser
+        [HttpGet]
         public ActionResult EmployerRegistration()
         {
             return View();
@@ -36,7 +60,6 @@ namespace Microwork_Platform_for_the_unemployed.Controllers
                 #endregion
 
                 #region Generate Activation Code
-
                 user.ActivationCode = Guid.NewGuid();
 
                 #endregion

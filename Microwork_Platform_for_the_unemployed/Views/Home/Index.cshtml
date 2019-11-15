@@ -3,9 +3,11 @@
     ViewBag.Title = "Index";
 }
 
-<h2>Index</h2>
+<h2>Welcome @HttpContext.Current.User.Identity.Name</h2>
 
-Welcome @HttpContext.Current.User.Identity.Name
+<div>
+    @Html.ActionLink("View Profile/Edit Profile", "ViewResult", "User")
+</div>
 
 @if (Request.IsAuthenticated)
 {

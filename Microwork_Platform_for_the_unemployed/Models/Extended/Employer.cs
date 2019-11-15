@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
 
 namespace Microwork_Platform_for_the_unemployed.Models
 {
@@ -11,7 +8,6 @@ namespace Microwork_Platform_for_the_unemployed.Models
     public partial class Employer
     {
         public string ConfirmPassword { get; set; }
-
     }
 
     public class EmployerMetaData
@@ -27,7 +23,7 @@ namespace Microwork_Platform_for_the_unemployed.Models
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email address required")]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
-        public System.DateTime RegisterDate { get; set; }
+        public DateTime RegisterDate { get; set; }
         public int JobPosts { get; set; }
         public bool IsEmailVerified { get; set; }
 
@@ -40,8 +36,15 @@ namespace Microwork_Platform_for_the_unemployed.Models
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Confirm password and password do not match")]
         public string ConfirmPassword { get; set; }
-        public System.Guid ActivationCode { get; set; }
-
+        public Guid ActivationCode { get; set; }
+        [Display(Name = "Mobile Number")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Mobile number required")]
+        public string MobileNumber { get; set; }
+        [Display(Name = "Company Number")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Mobile number required")]
+        public string CompanyNumber { get; set; }
+        [Display(Name = "Employer Name")]
+        public string EmployerName { get; set; }
 
     }
 }
